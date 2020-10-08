@@ -1,0 +1,56 @@
+import React, {useState, useEffect} from 'react';
+// import logo from './logo.svg';
+import './App.css';
+import { API, Auth } from 'aws-amplify'
+import { listPosts } from './graphql/queries'
+import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
+
+// const initialState = {
+//   formState: 'signUp', username: '', password: '', email: '', authCode: '',
+// }
+
+function App() {
+  const [posts, setPosts] = useState([]);
+  // const [state, setState]= useState(initialState);
+  useEffect(() =>{
+    fetchPosts();
+    checkUser()
+  }, []);
+
+  async function checkUser() {
+    try {
+      const user = await Auth.currentAuthenticatedUser();
+      console.log('user: ', user);
+    } catch (err) {
+      console.log('error: ', err);
+    }
+  }
+
+  async function fetchPosts() {
+    try {
+      const postData = await API.graphql({ query: listPosts });
+      setPosts(postData.data.listPosts.items)
+    } catch (err) {
+      console.log({ err })
+    }
+  }
+
+  // const { formState, username, password } = state;
+  return (
+    <div>
+      <h1>Hello World</h1>
+      <AmplifySignOut />
+      {
+        posts.map(post => (
+          <div key={post.id}>
+            <h3>{post.name}</h3>
+            <p>{post.location}</p>
+          </div>
+        ))
+      }
+    </div>
+  )
+}
+
+export default withAuthenticator(App);
+// export default App;
